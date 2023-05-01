@@ -1,24 +1,35 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import './style.scss';
+
+import TitlebarWindow from './components/window/TitlebarWindow';
+import Taskbar from './components/taskbar/Taskbar';
+import StartMenu from './components/taskbar/StartMenu';
 
 function App() {
+  const [showStartMenu, setShowStartMenu] = useState(false);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <TitlebarWindow>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <img
+            style={{ width: '25px', height: '25px' }}
+            src="//i.imgur.com/rJnYQnG.png"
+            alt=""
+          />
+          <p>　Cats are evil, but cute</p>
+        </div>
+        <div className="window_ok_button">
+          <section className="field-row" style={{ justifyContent: 'flex-end' }}>
+            <button aria-label="OK">OK</button>
+          </section>
+        </div>
+      </TitlebarWindow>
+
+      <TitlebarWindow>meow</TitlebarWindow>
+
+      <Taskbar startButtonPressed={setShowStartMenu} />
+
+      {showStartMenu && <StartMenu />}
     </div>
   );
 }
