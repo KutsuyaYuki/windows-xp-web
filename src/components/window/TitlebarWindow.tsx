@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import ResizableWindow from "./ResizableWindow";
 import { DraggingContext } from "./DraggingContext";
 
-export type TitlebarWindowProps = { children: React.ReactNode; };
+export type TitlebarWindowProps = { 
+    children: React.ReactNode; 
+    title: string;
+};
 
-export function TitlebarWindow({ children }: TitlebarWindowProps) {
+export function TitlebarWindow({ children, title }: TitlebarWindowProps) {
     const resizableWindowRef = React.useRef<HTMLDivElement>(null);
 
     const { setIsDragging, setStartPos, setDragPos } = React.useContext(DraggingContext);
@@ -28,7 +31,7 @@ export function TitlebarWindow({ children }: TitlebarWindowProps) {
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         className="title-bar">
-            <div className="title-bar-text">Very important message!</div>
+            <div className="title-bar-text">{title}</div>
             <div className="title-bar-controls">
                 <button className="minimize-button" aria-label="Minimize"></button>
                 <button className="maximize-button" aria-label="Maximize"></button>
