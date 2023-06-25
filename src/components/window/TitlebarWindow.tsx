@@ -28,9 +28,10 @@ export function TitlebarWindow({ children, title }: TitlebarWindowProps) {
     };
     return (<ResizableWindow windowRef={resizableWindowRef} windowId="initial-window">
         <div         
+        onSelect={() => false}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
-        className="title-bar">
+        className="title-bar" unselectable="on">
             <div className="title-bar-text">{title}</div>
             <div className="title-bar-controls">
                 <button className="minimize-button" aria-label="Minimize"></button>
