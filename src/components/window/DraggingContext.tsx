@@ -21,23 +21,44 @@ export function DraggingContextProvider({ children }: { children: React.ReactNod
         if (!isDragging) {
             return;
         }
-        setDragPos({ x: event.clientX, y: event.clientY });
-
-        const dx = dragPos.x - startPos.x;
-        const dy = dragPos.y - startPos.y;
-
-        if (isDragging != undefined && isDragging.current != undefined){
-            const cssProps = isDragging.current.style;
-            const left = typeof cssProps.left == 'number' ? cssProps.left : parseInt(cssProps.left || "0");
-            const top = typeof cssProps.top == 'number' ? cssProps.top : parseInt(cssProps.top || "0");
-            cssProps.left = left + dx + "px";
-            cssProps.top = top + dy + "px";
-            //return ({ left: left + dx, top: top + dy });
+    
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+    
+        const dragPosX = event.clientX;
+        const dragPosY = event.clientY;
+    
+        const dx = dragPosX - startPos.x;
+        const dy = dragPosY - startPos.y;
+    
+        if (isDragging && isDragging.current) {
+            const element = isDragging.current;
+            const rect = element.getBoundingClientRect();
+    
+            let newLeft = rect.left + dx;
+            let newTop = rect.top + dy;
+    
+            // Ensure the new position does not exceed the screen boundaries
+            if (newLeft < 0) {
+                newLeft = 0;
+            } else if (newLeft + rect.width > screenWidth) {
+                newLeft = screenWidth - rect.width;
+            }
+    
+            if (newTop < 0) {
+                newTop = 0;
+            } else if (newTop + rect.height > screenHeight) {
+                newTop = screenHeight - rect.height;
+            }
+    
+            element.style.left = `${newLeft}px`;
+            element.style.top = `${newTop}px`;
         }
-
-        setStartPos(dragPos);
+    
+        setDragPos({ x: dragPosX, y: dragPosY });
+        setStartPos({ x: dragPosX, y: dragPosY });
     };
-
+    
     return (
         <DraggingContext.Provider value={{setIsDragging, setStartPos, setDragPos}}>
             <div onMouseMove={handleMouseMove}>
