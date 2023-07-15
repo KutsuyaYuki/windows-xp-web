@@ -39,6 +39,7 @@ export function DraggingContextProvider({ children }: { children: React.ReactNod
             const element = isDragging.current;
             const rect = element.getBoundingClientRect();
     
+            // Calculate the new position
             let newLeft = rect.left + dx;
             let newTop = rect.top + dy;
     
@@ -55,10 +56,12 @@ export function DraggingContextProvider({ children }: { children: React.ReactNod
                 newTop = screenHeight - rect.height;
             }
     
+            // Apply the new position
             element.style.left = `${newLeft}px`;
             element.style.top = `${newTop}px`;
         }
     
+        // Update the current position
         setDragPos({ x: dragPosX, y: dragPosY });
         setStartPos({ x: dragPosX, y: dragPosY });
     };
