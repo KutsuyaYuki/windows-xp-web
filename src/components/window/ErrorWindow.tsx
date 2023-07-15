@@ -1,15 +1,15 @@
 import React from "react";
-import ResizableWindow from "./ResizableWindow";
 import TitlebarWindow from "./TitlebarWindow";
 
-export type ErrorWindowProps = { 
+export type ErrorWindowProps = {
+  windowId: string;
   children: React.ReactNode; 
   title: string;
 };
 
-export function ErrorWindow({ children, title }: ErrorWindowProps) {
+export function ErrorWindow({ windowId, children, title }: ErrorWindowProps) {
     return (
-        <TitlebarWindow title={title}>
+        <TitlebarWindow windowId={windowId} title={title}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <img
             style={{ width: '25px', height: '25px' }}

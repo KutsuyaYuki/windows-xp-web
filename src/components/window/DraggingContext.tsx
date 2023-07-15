@@ -1,3 +1,4 @@
+import { useSelectionContainer } from "@air/react-drag-to-select";
 import React, { useState } from "react";
 
 export type DraggingContextProps = {
@@ -16,6 +17,9 @@ export function DraggingContextProvider({ children }: { children: React.ReactNod
     const [isDragging, setIsDragging] = useState<React.RefObject<HTMLElement>|undefined>(undefined);
     const [startPos, setStartPos] = useState({ x: 0, y: 0 });
     const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
+    const { DragSelection } = useSelectionContainer({
+        isEnabled: !isDragging
+    });
 
     const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
         if (!isDragging) {
@@ -58,10 +62,15 @@ export function DraggingContextProvider({ children }: { children: React.ReactNod
         setDragPos({ x: dragPosX, y: dragPosY });
         setStartPos({ x: dragPosX, y: dragPosY });
     };
+
+    const handleMouseUp = () => {
+        setIsDragging(undefined);
+    };
     
     return (
         <DraggingContext.Provider value={{setIsDragging, setStartPos, setDragPos}}>
-            <div onMouseMove={handleMouseMove}>
+        <DragSelection  />
+            <div className="dragSpace" onMouseMoveCapture={handleMouseMove} onMouseUp={handleMouseUp}>
                 {children}
             </div>
         </DraggingContext.Provider>
