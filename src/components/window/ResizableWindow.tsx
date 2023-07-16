@@ -8,10 +8,14 @@ interface ResizableWindowProps {
 }
 
 function ResizableWindow({ children, windowId, style, windowRef }: ResizableWindowProps) {
+
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
     return (
         <div 
             ref={windowRef}
-            style={style}
+            style={{top: windowHeight/2, left: windowWidth/2, ...style} as React.CSSProperties}
             className="window"
             data-window-id={windowId}>
             {children}

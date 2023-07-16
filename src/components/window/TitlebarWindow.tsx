@@ -30,7 +30,7 @@ export function TitlebarWindow({ windowId, children, title }: TitlebarWindowProp
     }
 
     return (<ResizableWindow windowRef={resizableWindowRef} windowId="initial-window">
-        <div         
+        <div
         onSelect={() => false}
         onMouseDown={handleMouseDown}
         className="title-bar" unselectable="on">

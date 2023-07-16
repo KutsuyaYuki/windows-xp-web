@@ -1,4 +1,4 @@
-import { useSelectionContainer } from "@air/react-drag-to-select";
+import { SelectionBox, useSelectionContainer } from "@air/react-drag-to-select";
 import React, { useState } from "react";
 
 export type DraggingContextProps = {
@@ -8,6 +8,7 @@ export type DraggingContextProps = {
   setStartPos: React.Dispatch<React.SetStateAction<{ x: number; y: number }>>;
   setDragPos: React.Dispatch<React.SetStateAction<{ x: number; y: number }>>;
   setDisableDrag?: React.Dispatch<React.SetStateAction<boolean>>;
+  selection?: SelectionBox;
 };
 
 export const DraggingContext = React.createContext<DraggingContextProps>({
@@ -28,8 +29,12 @@ export function DraggingContextProvider({
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const [disableDrag, setDisableDrag] = useState(false);
+  const [selection, setSelection] = useState<SelectionBox | undefined>();
   const { DragSelection } = useSelectionContainer({
     isEnabled: !isDragging && !disableDrag,
+    onSelectionChange: (box) => {
+      setSelection(box);
+    },
   });
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -83,7 +88,7 @@ export function DraggingContextProvider({
 
   return (
     <DraggingContext.Provider
-      value={{ setIsDragging, setStartPos, setDragPos, setDisableDrag }}
+      value={{ setIsDragging, setStartPos, setDragPos, setDisableDrag, selection: selection }}
     >
       <DragSelection />
       <div
