@@ -16,18 +16,7 @@ export const WindowContext = React.createContext<WindowContextProps>({
 
 export function WindowContextProvider({ children }: { children: React.ReactNode }) {
     const [windowItems, setWindows] = useState<WindowItem[]>([
-        {
-          id: uuidv4(),
-          title: 'Test',
-          content: (<div>Test</div>),
-          isError: false,
-        },
-        {
-          id: uuidv4(),
-          title: 'Anger',
-          content: (<div>Test</div>),
-          isError: true,
-        }
+        
       ]);
     
       function openWindow(window:WindowItem){
