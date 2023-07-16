@@ -586,4 +586,12 @@ body {
 
 .desktop-icon{
   pointer-events: none;
+  margin: auto;
+  display: block;
+}
+.desktop-icon-text{
+  text-align: center;
+}
+.desktop-icon-image{
+  pointer-events: none;
 }
