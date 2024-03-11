@@ -1,0 +1,703 @@
+> ./node_modules/react-draggable/typings/test.tsx:
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import Draggable, {DraggableCore} from 'react-draggable';
+
+const root = document.getElementById('root')
+
+function handleStart() {}
+function handleDrag() {}
+function handleStop() {}
+function handleMouseDown() {}
+
+const nodeRef = React.createRef<HTMLDivElement>();
+ReactDOM.render(
+  <Draggable
+    axis="y"
+    handle=".handle"
+    cancel=".cancel"
+    grid={[10, 10]}
+    onStart={handleStart}
+    onDrag={handleDrag}
+    onStop={handleStop}
+    offsetParent={document.body}
+    allowAnyClick={true}
+    onMouseDown={handleMouseDown}
+    disabled={true}
+    enableUserSelectHack={false}
+    bounds={false}
+    defaultClassName={'draggable'}
+    defaultClassNameDragging={'dragging'}
+    defaultClassNameDragged={'dragged'}
+    defaultPosition={{x: 0, y: 0}}
+    nodeRef={nodeRef}
+    positionOffset={{x: 0, y: 0}}
+    position={{x: 50, y: 50}}>
+    <div className="foo bar" ref={nodeRef}>
+      <div className="handle"/>
+      <div className="cancel"/>
+    </div>
+  </Draggable>,
+  root
+);
+
+const nodeRefCore = React.createRef<HTMLDivElement>();
+ReactDOM.render(
+  <DraggableCore
+    handle=".handle"
+    cancel=".cancel"
+    allowAnyClick={true}
+    disabled={true}
+    onMouseDown={handleMouseDown}
+    grid={[10, 10]}
+    nodeRef={nodeRefCore}
+    onStart={handleStart}
+    onDrag={handleDrag}
+    onStop={handleStop}
+    offsetParent={document.body}
+    enableUserSelectHack={false}>
+    <div className="foo bar" ref={nodeRefCore}>
+      <div className="handle"/>
+      <div className="cancel"/>
+    </div>
+  </DraggableCore>,
+  root
+);
+
+
+ReactDOM.render(<Draggable><div/></Draggable>, root);
+
+ReactDOM.render(<DraggableCore><div/></DraggableCore>, root);
+
+> ./src/App.test.tsx:
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import App from './App';
+
+test('renders learn react link', () => {
+  render(<App />);
+  const linkElement = screen.getByText(/learn react/i);
+  expect(linkElement).toBeInTheDocument();
+});
+
+> ./src/App.tsx:
+import React, { useState } from 'react';
+import './style.scss';
+
+import Taskbar from './components/taskbar/Taskbar';
+import StartMenu from './components/taskbar/StartMenu';
+import { DraggingContextProvider } from './components/window/DraggingContext';
+import { WindowContextProvider } from './components/window/WindowContext';
+import { ScreenCanvas } from './components/window/ScreenCanvas';
+
+function App() {
+  const [showStartMenu, setShowStartMenu] = useState(false);
+
+  return (
+    <WindowContextProvider>
+      <DraggingContextProvider>
+        <div>
+          <ScreenCanvas></ScreenCanvas>
+
+          <Taskbar startButtonPressed={setShowStartMenu} />
+
+          {showStartMenu && <StartMenu />}
+        </div>
+      </DraggingContextProvider>
+    </WindowContextProvider>
+  );
+}
+
+export default App;
+
+> ./src/components/apps/AppWindow.tsx:
+import { ExplorerWindow } from "./explorer/ExplorerWindow";
+
+export enum AppName {
+    desktop,
+    explorer
+}
+
+export type AppWindowProps = {
+    appName: AppName;
+}
+
+export function AppWindow( {appName} : AppWindowProps ):JSX.Element{
+    switch (appName) {
+        case AppName.explorer:
+            
+            return (<ExplorerWindow></ExplorerWindow>);
+    
+        default:
+            return (<></>);
+    }
+}
+> ./src/components/apps/explorer/ExplorerWindow.tsx:
+import React from "react";
+
+export function ExplorerWindow() {
+  return (
+    <>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <p>Exploder</p>
+      </div>
+      <div className="window_ok_button">
+        <section className="field-row" style={{ justifyContent: 'flex-end' }}>
+          <button aria-label="OK">OK</button>
+        </section>
+      </div>
+    </>
+  );
+}
+> ./src/components/desktop/DesktopGrid.tsx:
+
+import { DesktopIcon } from "./DesktopIcon";
+import { AppName } from "../apps/AppWindow";
+import { WidthProvider, Responsive, Layouts, Layout } from "react-grid-layout";
+import { useContext, useEffect, useState } from "react";
+import GridLayout from "react-grid-layout";
+import { DraggingContext } from "../window/DraggingContext";
+
+export function DesktopGrid() {
+  const originalLayouts = getFromLS("layouts") || {};
+  const [state, setState] = useState<{ layouts: Layout[] }>({ layouts: JSON.parse(JSON.stringify(originalLayouts)) });
+  const {setDisableDrag} = useContext(DraggingContext);
+
+  function onLayoutChange(layouts: Layout[]) {
+    saveToLS({
+      layouts: layouts
+    });
+  }
+  const windowWidth = window.innerWidth;
+  return (
+    <GridLayout
+      className="layout"
+      rowHeight={30}
+      width={windowWidth}
+      verticalCompact={false}
+      cols={windowWidth/64}
+      onLayoutChange={(layouts) =>
+        onLayoutChange(layouts)
+      }
+      onDragStart={() => setDisableDrag?.(true)}
+      onDragStop={() => setDisableDrag?.(false)}
+      layout={state.layouts}
+    >
+      <div key="c">
+        <DesktopIcon icon="folder.png" classname="desktop-icon" alt="Folder" name={AppName.explorer}></DesktopIcon>
+      </div>
+    </GridLayout>
+  );
+}
+
+function getFromLS(key: string) {
+  let ls: { [key: string]: unknown } = {};
+  if (global.localStorage) {
+    try {
+      ls = JSON.parse(global.localStorage.getItem("rgl-8") ?? "{}") || {};
+    } catch (e) {
+      /*Ignore*/
+    }
+  }
+  return ls[key];
+}
+
+function saveToLS(item: { [key: string]: unknown }) {
+  if (global.localStorage) {
+    global.localStorage.setItem(
+      "rgl-8",
+      JSON.stringify(item)
+    );
+  }
+}
+> ./src/components/desktop/DesktopIcon.tsx:
+import React, { useContext, useEffect } from "react";
+import { WindowContext } from "../window/WindowContext";
+import { v4 as uuidv4 } from 'uuid';
+import { AppName, AppWindow } from "../apps/AppWindow";
+import { DraggingContext } from "../window/DraggingContext";
+import { Box, boxesIntersect } from "@air/react-drag-to-select";
+
+export type DesktopIconProps = {
+    icon: string;
+    classname: string;
+    alt: string;
+    name: AppName;
+};
+
+export function DesktopIcon({ icon, classname, alt, name }: DesktopIconProps) {
+    const { openWindow } = useContext(WindowContext);
+    const {setDisableDrag, selection} = useContext(DraggingContext);
+    const buttonRef = React.useRef<HTMLDivElement>(null);
+    
+    useEffect(() => {
+        const boundingClientRect = buttonRef.current?.getBoundingClientRect();
+        const item: Box = {
+            
+            top: boundingClientRect?.top ?? 0,
+            left: boundingClientRect?.left ?? 0,
+            width: buttonRef.current?.offsetWidth ?? 0,
+            height: buttonRef.current?.offsetHeight ?? 0,
+
+        };
+        if(selection && boxesIntersect(selection,item)) {
+            buttonRef.current!.classList.add("desktop-icon-selected");
+        } 
+        else {
+            buttonRef.current!.classList.remove("desktop-icon-selected");
+        }
+    },[selection]);
+
+    function onClicked() {
+        // Hacky fix because the onDragStop event is not fired when the user double clicks on the icon
+        setDisableDrag?.(false);
+        openWindow({
+            id: uuidv4(),
+            content: (<AppWindow appName={name}></AppWindow>),
+            isError: false,
+            title: alt,
+        })
+    }
+    return (
+        <div className="desktop-icon-button" onDoubleClick={(e) => onClicked()} ref={buttonRef}>
+            <div className="desktop-icon-image">
+                <img src={`images/icons/${icon}`} className={classname} alt={alt} width="32" height="32" />
+            </div>
+            <div className="desktop-icon-text">{alt}</div>
+        </div>
+    );
+}
+
+
+> ./src/components/taskbar/QuicklaunchItem.tsx:
+import React, { useContext } from "react";
+import { WindowContext } from "../window/WindowContext";
+import { v4 as uuidv4 } from 'uuid';
+import { AppName, AppWindow } from "../apps/AppWindow";
+
+export type QuickLaunchItemProps = { 
+    icon: string;
+    classname: string;
+    alt: string;
+    name: AppName;
+};
+
+export function QuickLaunchItem({ icon, classname, alt, name }: QuickLaunchItemProps) {
+    const {openWindow} = useContext(WindowContext);
+    function onClicked(){
+        openWindow({
+            id: uuidv4(),
+            content: (<AppWindow appName={name}></AppWindow>),
+            isError: false,
+            title: alt,
+        })
+    }
+    return (
+        <button className="quick-launch-button" onClick={(e)=> onClicked()}>
+        <img src={`images/icons/${icon}`} className={classname} alt={alt} width="24" height="24" />
+      </button>
+    );
+}
+> ./src/components/taskbar/StartMenu.tsx:
+export function StartMenu() {
+    return (<div className="start-menu">
+    <div className="start-menu-header">
+      <div className="start-menu-header-left">
+        <span>Start</span>
+      </div>
+      <div className="start-menu-header-right"></div>
+    </div>
+    <div className="start-menu-body">
+      <div className="start-menu-group-right">
+        <div className="start-menu-group-right-items">
+          <button className="start-menu-button start-menu-item" data-programfile="explorer">
+            <p>Documents</p>
+          </button>
+          <button className="start-menu-button start-menu-item">
+            <p>My Pictures</p>
+          </button>
+          <button className="start-menu-button">
+            <p>My Music</p>
+          </button>
+          <button className="start-menu-button">
+            <p>My Computer</p>
+          </button>
+          <button className="start-menu-button">
+            <p>Control Panel</p>
+          </button>
+        </div>
+      </div>
+      <div className="start-menu-group-left">
+        <div className="start-menu-group-item">
+          <div className="start-menu-group-left-items">
+            <button className="start-menu-button-left">
+              <p>Calculator</p>
+            </button>
+            ...
+          </div>
+          <div className="start-menu-group-left-items">
+            <button className="start-menu-button-left start-menu-item" data-programfile="notepad">
+              <p>Notepad</p>
+            </button>
+          </div>
+          <div className="start-menu-group-left-items">
+            <button className="start-menu-button-left">
+              <p>All programs</p>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div className="start-menu-footer">
+      {/* <button className="start-menu-button button-logoff">
+          <p>Log Off...</p>
+        </button>
+        <button className="start-menu-button button-shutdown">
+          <p>Shut Down...</p>
+        </button> */}
+    </div>
+  </div>);
+}
+
+export default StartMenu;
+> ./src/components/taskbar/Taskbar.tsx:
+import { useContext } from "react";
+import { WindowContext } from "../window/WindowContext";
+import { QuickLaunchItem } from "./QuicklaunchItem";
+import { AppName } from "../apps/AppWindow";
+
+export type TaskbarProps = {
+    startButtonPressed: (pressed: boolean | ((o: boolean) => boolean)) => void;
+};
+
+export function Taskbar({ startButtonPressed }: TaskbarProps) {
+    const windowContext = useContext(WindowContext);
+    const handleQuickLaunchItemClick = (item: string) => {
+        console.log(`Clicked on ${item}`); // Replace with your desired action
+    };
+
+    return (<div className="taskbar">
+        <div className="start-button" onMouseDown={() => startButtonPressed(previousState => !previousState)}>
+            Start
+        </div>
+        <div className="quick-launch">
+            <QuickLaunchItem icon="desktop.png" classname="show-desktop" alt="Show Desktop" name={AppName.desktop} />
+            <QuickLaunchItem icon="explorer.png" classname="show-explorer" alt="Explorer" name={AppName.explorer} />
+        </div>
+        <div className="taskbar-windows-list">{windowContext.windowItems.map((windowItem, index) => {
+            return (<div className="taskbar-window-entry" key={index}>
+                <img src="images/icons/explorer.png" className="taskbar-windows-icon" alt="Explorer" width="24" height="24" />
+                <span className="taskbar-windows-title">{windowItem.title}</span>
+            </div>);
+        })}
+        </div>
+        <div className="clock" id="current-time"></div>
+    </div>);
+}
+
+export default Taskbar;
+> ./src/components/window/DraggingContext.tsx:
+import { SelectionBox, useSelectionContainer } from "@air/react-drag-to-select";
+import React, { useState } from "react";
+
+export type DraggingContextProps = {
+  setIsDragging: React.Dispatch<
+    React.SetStateAction<React.RefObject<HTMLElement> | undefined>
+  >;
+  setStartPos: React.Dispatch<React.SetStateAction<{ x: number; y: number }>>;
+  setDragPos: React.Dispatch<React.SetStateAction<{ x: number; y: number }>>;
+  setDisableDrag?: React.Dispatch<React.SetStateAction<boolean>>;
+  selection?: SelectionBox;
+};
+
+export const DraggingContext = React.createContext<DraggingContextProps>({
+  setIsDragging: () => {},
+  setStartPos: () => {},
+  setDragPos: () => {},
+  setDisableDrag: () => {},
+});
+
+export function DraggingContextProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [isDragging, setIsDragging] = useState<
+    React.RefObject<HTMLElement> | undefined
+  >(undefined);
+  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
+  const [disableDrag, setDisableDrag] = useState(false);
+  const [selection, setSelection] = useState<SelectionBox | undefined>();
+  const { DragSelection } = useSelectionContainer({
+    isEnabled: !isDragging && !disableDrag,
+    onSelectionChange: (box) => {
+      setSelection(box);
+    },
+  });
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging) {
+      return;
+    }
+
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+
+    const dragPosX = event.clientX;
+    const dragPosY = event.clientY;
+
+    const dx = dragPosX - startPos.x;
+    const dy = dragPosY - startPos.y;
+
+    if (isDragging && isDragging.current) {
+      const element = isDragging.current;
+      const rect = element.getBoundingClientRect();
+
+      // Calculate the new position
+      let newLeft = rect.left + dx;
+      let newTop = rect.top + dy;
+
+      // Ensure the new position does not exceed the screen boundaries
+      if (newLeft < 0) {
+        newLeft = 0;
+      } else if (newLeft + rect.width > screenWidth) {
+        newLeft = screenWidth - rect.width;
+      }
+
+      if (newTop < 0) {
+        newTop = 0;
+      } else if (newTop + rect.height > screenHeight) {
+        newTop = screenHeight - rect.height;
+      }
+
+      // Apply the new position
+      element.style.left = `${newLeft}px`;
+      element.style.top = `${newTop}px`;
+    }
+
+    // Update the current position
+    setDragPos({ x: dragPosX, y: dragPosY });
+    setStartPos({ x: dragPosX, y: dragPosY });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(undefined);
+  };
+
+  return (
+    <DraggingContext.Provider
+      value={{ setIsDragging, setStartPos, setDragPos, setDisableDrag, selection: selection }}
+    >
+      <DragSelection />
+      <div
+        className="dragSpace"
+        onMouseMoveCapture={handleMouseMove}
+        onMouseUp={handleMouseUp}
+      >
+        {children}
+      </div>
+    </DraggingContext.Provider>
+  );
+}
+
+> ./src/components/window/ErrorWindow.tsx:
+import React from "react";
+import TitlebarWindow from "./TitlebarWindow";
+
+export type ErrorWindowProps = {
+  windowId: string;
+  children: React.ReactNode; 
+  title: string;
+};
+
+export function ErrorWindow({ windowId, children, title }: ErrorWindowProps) {
+    return (
+        <TitlebarWindow windowId={windowId} title={title}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <img
+            style={{ width: '25px', height: '25px' }}
+            src="//i.imgur.com/rJnYQnG.png"
+            alt=""
+          />
+          {children}
+        </div>
+        <div className="window_ok_button">
+          <section className="field-row" style={{ justifyContent: 'flex-end' }}>
+            <button aria-label="OK">OK</button>
+          </section>
+        </div>
+      </TitlebarWindow>
+    );
+}
+
+export default ErrorWindow;
+> ./src/components/window/ResizableWindow.tsx:
+import React from "react";
+
+interface ResizableWindowProps {
+    children: React.ReactNode;
+    windowId: string;
+    style?: React.CSSProperties;
+    windowRef: React.Ref<HTMLDivElement>;
+}
+
+function ResizableWindow({ children, windowId, style, windowRef }: ResizableWindowProps) {
+
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    return (
+        <div 
+            ref={windowRef}
+            style={{top: windowHeight/2, left: windowWidth/2, ...style} as React.CSSProperties}
+            className="window"
+            data-window-id={windowId}>
+            {children}
+        </div>
+    );
+}
+
+export default ResizableWindow;
+
+> ./src/components/window/ScreenCanvas.tsx:
+
+import { DesktopGrid } from "../desktop/DesktopGrid";
+import { WindowCollection } from "./WindowCollection";
+export function ScreenCanvas() {
+  return (
+    <div className="screenCanvas">
+      <DesktopGrid></DesktopGrid>
+      <WindowCollection></WindowCollection>
+    </div>
+  );
+}
+> ./src/components/window/TitlebarWindow.tsx:
+import React, { useContext, useState } from "react";
+import ResizableWindow from "./ResizableWindow";
+import { DraggingContext } from "./DraggingContext";
+import { WindowContext } from "./WindowContext";
+
+export type TitlebarWindowProps = { 
+    windowId: string;
+    children: React.ReactNode; 
+    title: string;
+};
+
+export function TitlebarWindow({ windowId, children, title }: TitlebarWindowProps) {
+    const resizableWindowRef = React.useRef<HTMLDivElement>(null);
+    const {closeWindow} = useContext(WindowContext);
+
+    const { setIsDragging, setStartPos, setDragPos } = React.useContext(DraggingContext);
+    
+    const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+        if (event.button !== 0) {
+            return;
+        }
+
+        setDragPos({ x: event.clientX, y: event.clientY });
+        setStartPos({ x: event.clientX, y: event.clientY });
+        setIsDragging(resizableWindowRef);
+    };
+
+    function closeWindowAction(){
+        closeWindow(windowId);
+    }
+
+    return (<ResizableWindow windowRef={resizableWindowRef} windowId="initial-window">
+        <div
+        onSelect={() => false}
+        onMouseDown={handleMouseDown}
+        className="title-bar" unselectable="on">
+            <div className="title-bar-text">{title}</div>
+            <div className="title-bar-controls">
+                <button className="minimize-button" aria-label="Minimize"></button>
+                <button className="maximize-button" aria-label="Maximize"></button>
+                <button className="close-button" aria-label="Close" onClick={closeWindowAction}></button>
+            </div>
+        </div>
+        <div className="window-body">
+            {children}
+        </div>
+    </ResizableWindow>);
+}
+
+export default TitlebarWindow;
+> ./src/components/window/WindowCollection.tsx:
+import { useContext } from "react";
+import ErrorWindow from "./ErrorWindow";
+import TitlebarWindow from "./TitlebarWindow";
+import { WindowContext } from "./WindowContext";
+export function WindowCollection() {
+    const windowContext = useContext(WindowContext);
+    return (<>{windowContext.windowItems.map((window, index) => {
+        if (window.isError) {
+          return (<ErrorWindow windowId={window.id} title={window.title} key={index}>{window.content}</ErrorWindow>)
+        }
+        return (
+          <TitlebarWindow
+            windowId={window.id}
+            title={window.title}
+            key={index}>
+            {window.content}
+          </TitlebarWindow>
+        );
+      })}</>);
+}
+> ./src/components/window/WindowContext.tsx:
+import React, { useState } from "react";
+import { WindowItem } from "../../models/windowItem";
+import { v4 as uuidv4 } from 'uuid';
+
+export type WindowContextProps = {
+    windowItems: WindowItem[];
+    openWindow: (window: WindowItem) => void;
+    closeWindow: (id:string) => void;
+};
+
+export const WindowContext = React.createContext<WindowContextProps>({
+    windowItems: [],
+    openWindow: (window: WindowItem) => {},
+    closeWindow: (id:string) => {}
+});
+
+export function WindowContextProvider({ children }: { children: React.ReactNode }) {
+    const [windowItems, setWindows] = useState<WindowItem[]>([
+        
+      ]);
+    
+      function openWindow(window:WindowItem){
+        setWindows(currentWindows => [...currentWindows,window])
+      }
+
+      function closeWindow(id:string){
+        setWindows(currentWindows => [...currentWindows.filter(window => window.id != id)])
+      }
+
+    return (
+        <WindowContext.Provider value={{windowItems, openWindow, closeWindow}}>
+            {children}
+        </WindowContext.Provider>
+    );
+}
+> ./src/index.tsx:
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.scss';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+
+const root = ReactDOM.createRoot(
+  document.getElementById('root') as HTMLElement
+);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();
+

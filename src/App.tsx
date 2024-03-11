@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './style.scss';
+import 'xp.css/dist/XP.css';
 
 import Taskbar from './components/taskbar/Taskbar';
 import StartMenu from './components/taskbar/StartMenu';
