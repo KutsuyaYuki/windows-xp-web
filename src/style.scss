@@ -1,3 +1,8 @@
+@font-face {
+  font-family: 'tahoma';
+  src: local('tahoma'), url("fonts/tahoma.ttf") format('truetype');
+}
+
 body {
   background-image: url('background.jpg');
   background-size: cover;
@@ -5,7 +10,8 @@ body {
   background-color: #174cb9;
   margin: 0;
   padding: 0;
-  font-family: Tahoma;
+  font-family: 'tahoma' !important;
+
 
   .window {
     box-shadow: inset -1px -1px #00138c, inset 1px 1px #0831d9, inset -2px -2px #001ea0, inset 2px 2px #166aee, inset -3px -3px #003bda, inset 3px 3px #0855dd;
@@ -35,7 +41,6 @@ body {
     }
 
     button {
-      font-family: "Pixelated MS Sans Serif", Arial;
       -webkit-font-smoothing: antialiased;
       font-size: 11px;
       box-sizing: border-box;
@@ -493,29 +498,29 @@ body {
   font-size: 12pt;
 }
 
-.menu-item {
-  float: left;
-  margin-left: 10px;
-  margin-top: 5px;
-  padding-left: 5px;
-  cursor: pointer;
+// .menu-item {
+//   float: left;
+//   margin-left: 10px;
+//   margin-top: 5px;
+//   padding-left: 5px;
+//   cursor: pointer;
 
-  &:hover {
-    background-color: #ddd;
-  }
+//   &:hover {
+//     background-color: #ddd;
+//   }
 
-  &:hover {
-    background-color: #ddd;
-  }
+//   &:hover {
+//     background-color: #ddd;
+//   }
 
-  &:first-child {
-    margin-left: 0;
-  }
+//   &:first-child {
+//     margin-left: 0;
+//   }
 
-  &:hover .sub-menu {
-    display: block;
-  }
-}
+//   &:hover .sub-menu {
+//     display: block;
+//   }
+// }
 
 .sub-menu {
   position: absolute;
@@ -600,4 +605,42 @@ body {
 .desktop-icon-selected img{
   filter: sepia(20%) hue-rotate(190deg) saturate(800%) brightness(120%);
 
+}
+
+.menu-bar {
+  display: flex;
+  width: 100%;
+  height: 22px;
+  border-bottom: 1px solid #DAD2BB;
+  font-size: 9pt;
+  margin-top: -3px;
+
+  .menu-item {
+    margin-top: 5px;
+    padding-left: 5px;
+    cursor: pointer;
+  
+    &:hover {
+      background-color: #ddd;
+    }
+
+    > .menu-children-container {
+      display: none;
+    }
+
+    
+      cursor: pointer;
+      z-index: 99;
+      > .menu-children-container {
+        
+        width: 0px;
+        .menu-children {
+          flex-direction: column;
+          background-color: #ece9d8;
+          padding: 4px;
+          width: fit-content;
+        }
+    }
+
+  }
 }
